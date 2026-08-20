@@ -154,8 +154,14 @@ async function getPatchMp4() {
   const code = await res.text();
 
   // Strip Node.js-only parts (fs require, CLI entry, module.exports)
-  const cleaned = code
-    .replace(/^const fs = require\('fs'\);?
+  // Strip Node.js-only parts
+  let cleaned = code;
+  cleaned = cleaned.split('\n').filter(line => {
+    if (line.startsWith('const fs = require')) return false;
+    if (line.startsWith('module.exports')) return false;
+    return true;
+  }).join('\n');
+  cleaned = cleaned.replace(/if\s*\(require\.main\s*===\s*module\)[\s\S]*?\n\}/, '');
 ?/m, '')
     .replace(/^if \(require\.main[\s\S]*?^}
 ?/m, '')
