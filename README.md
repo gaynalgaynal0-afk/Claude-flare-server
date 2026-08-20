@@ -1,39 +1,38 @@
 # JV Studio — Cloudflare Worker
 
-## Deploy steps
+## How the patcher works
+The worker fetches `patcher_bypass.js` from your GitHub repo at runtime.
+To update the patcher: just push a new version to GitHub — no redeployment needed.
 
-1. Install wrangler:
-   npm install -g wrangler
+Patcher URL (set in worker.js line ~20):
+https://raw.githubusercontent.com/gaynalgaynal0-afk/JV-Upload-method-bot/main/patcher_bypass.js
 
-2. Login:
-   wrangler login
+Change the URL if your repo/branch/path is different.
 
-3. Set your secrets (do NOT put these in wrangler.toml):
-   wrangler secret put BOT_TOKEN
-   → paste: 8798228886:AAGymdC7v0idzMt5_CKoqv5pCcDMhZ20KmI
+## Deploy via GitHub (no CLI needed)
 
-   wrangler secret put UPSTASH_REDIS_REST_URL
-   → paste: https://assuring-ray-176654.upstash.io
+1. Create a new GitHub repo: jv-studio-worker
+2. Upload these files:
+   - worker.js
+   - wrangler.toml
+   - patcher_bypass.js  ← put this here too so you can update it easily
 
-   wrangler secret put UPSTASH_REDIS_REST_TOKEN
-   → paste: gQAAAAAAArIOAAIgcDEzM2VjMmU2Mjk2NGY0MjEyODY5NjJiOWYwMDgzNWMxNQ
+3. Go to dash.cloudflare.com
+   → Workers & Pages → Create → Import from Git
+   → Connect GitHub → select jv-studio-worker
 
-4. Deploy:
-   wrangler deploy
+4. After deploy → Settings → Variables and Secrets → add:
+   BOT_TOKEN              = your telegram bot token
+   UPSTASH_REDIS_REST_URL = https://assuring-ray-176654.upstash.io
+   UPSTASH_REDIS_REST_TOKEN = gQAAAAAAArIOAAIg...
 
-Your worker will be live at:
-https://jv-studio-server.<your-subdomain>.workers.dev
+## To update the patcher
+Just push a new patcher_bypass.js to GitHub.
+The worker picks it up within 5 minutes automatically (cache TTL).
 
 ## Endpoints
-
-GET  /                → health check
-GET  /tier/:uid       → get user tier (free/premium)
-GET  /quota/:uid      → get weekly upload quota
-POST /verify          → { uid } → { member, tier }
-POST /patch           → multipart: video + uid → patched MP4
-
-## Notes
-- No ffmpeg needed — pure JS MP4 patcher
-- Cloudflare free plan: 100k requests/day, 10ms CPU limit
-  (patching large files may hit CPU limit — use paid plan for production)
-- Premium UIDs are hardcoded in worker.js PREMIUM_UIDS set
+GET  /              → health check
+GET  /tier/:uid     → free or premium
+GET  /quota/:uid    → weekly upload count
+POST /verify        → { uid } → { member, tier }
+POST /patch         → multipart: video + uid → patched MP4
