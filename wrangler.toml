@@ -1,0 +1,11 @@
+name            = "jv-studio-server"
+main            = "worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# These are non-secret defaults — override with secrets below
+
+# ── Set these as secrets using:
+#    wrangler secret put BOT_TOKEN
+#    wrangler secret put UPSTASH_REDIS_REST_URL
+#    wrangler secret put UPSTASH_REDIS_REST_TOKEN
